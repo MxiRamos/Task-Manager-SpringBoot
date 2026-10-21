@@ -11,16 +11,16 @@ import com.taskManager.model.Task;
 import com.taskManager.repository.TaskRepository;
 import com.taskManager.service.TaskService;
 
-import lombok.RequiredArgsConstructor;
-
-@Service 
-@RequiredArgsConstructor
+@Service
 public class TaskServiceImpl implements TaskService {
 
     // Implement the methods defined in the TaskService interface
     private final TaskRepository taskRepository;
 
-    
+    public TaskServiceImpl(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
+    }
+
     @Override
     public List<TaskResponse> getAllTasks() {
         // Implement logic to retrieve all tasks and convert them to TaskResponse
@@ -29,8 +29,7 @@ public class TaskServiceImpl implements TaskService {
                         task.getId(),
                         task.getTitle(),
                         task.getDescription(),
-                        task.isCompleted(),
-                        task.getCreatedAt().toString()))
+                        task.isCompleted()))
                 .toList();
         // throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -43,9 +42,8 @@ public class TaskServiceImpl implements TaskService {
                 task.getId(),
                 task.getTitle(),
                 task.getDescription(),
-                task.isCompleted(),
-                task.getCreatedAt().toString()))
-                .orElseThrow(() -> new ResourceNotFoundException("No task found"));
+                task.isCompleted()))
+                .orElseThrow(() -> new ResourceNotFoundException("No task found with id: " + id));
         //throw new UnsupportedOperationException("Not implemented yet");
     }
 
@@ -61,8 +59,7 @@ public class TaskServiceImpl implements TaskService {
             savedTask.getId(),
             savedTask.getTitle(),
             savedTask.getDescription(),
-            savedTask.isCompleted(),
-            savedTask.getCreatedAt().toString()
+            savedTask.isCompleted()
         );
         //throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -70,7 +67,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse updateTask(Long id, TaskRequest request) {
         // Implement logic to update an existing task and convert it to TaskResponse
-        Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
         task.setTitle(request.title());
         task.setDescription(request.description());
         Task updatedTask = taskRepository.save(task);
@@ -79,8 +76,7 @@ public class TaskServiceImpl implements TaskService {
             updatedTask.getId(),
             updatedTask.getTitle(),
             updatedTask.getDescription(),
-            updatedTask.isCompleted(),
-            updatedTask.getCreatedAt().toString()
+            updatedTask.isCompleted()
         );
         //throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -88,7 +84,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse markTaskAsCompleted(Long id) {
         // Implement logic to mark a task as completed and convert it to 
-        Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
         task.setCompleted(true);
         Task updatedTask = taskRepository.save(task);
 
@@ -96,8 +92,7 @@ public class TaskServiceImpl implements TaskService {
             updatedTask.getId(),
             updatedTask.getTitle(),
             updatedTask.getDescription(),
-            updatedTask.isCompleted(),
-            updatedTask.getCreatedAt().toString()
+            updatedTask.isCompleted()
         );
         //throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -105,7 +100,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(Long id) {
         // Implement logic to delete a task
-        Task task = taskRepository.findById(id).orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
         taskRepository.delete(task);
         //throw new UnsupportedOperationException("Not implemented yet");
     }

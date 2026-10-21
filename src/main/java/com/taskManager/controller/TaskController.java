@@ -9,7 +9,6 @@ import com.taskManager.dto.TaskResponse;
 import com.taskManager.service.TaskService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
@@ -24,11 +23,14 @@ import org.springframework.http.HttpStatus;
 
 @RestController 
 @RequestMapping("/api/tasks")
-@RequiredArgsConstructor 
 public class TaskController {
 
     
     private final TaskService taskService;
+
+    public TaskController(TaskService taskService){
+        this.taskService = taskService;
+    }
 
     @GetMapping
     public List<TaskResponse> getAllTasks() {
