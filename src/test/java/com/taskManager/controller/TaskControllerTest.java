@@ -33,6 +33,46 @@ public class TaskControllerTest {
     }
 
     @Test 
+    void getTasksTest_200() throws Exception{
+        mockMvc.perform(get("/api/tasks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test 
+    void getTaskByIdTest_200() throws Exception {
+        String body = """
+            {
+                "title": "test title",
+                "description": "test description"
+            }
+            """;
+
+        String response = mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long taskId = objectMapper.readTree(response).get("id").asLong();
+
+        mockMvc.perform(get("/api/tasks/" + taskId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(taskId))
+            .andExpect(jsonPath("$.title").value("test title"))
+            .andExpect(jsonPath("$.description").value("test description"));
+    }
+
+    @Test 
+    void getTaskByIdTest_404() throws Exception {
+        mockMvc.perform(get("/api/tasks/99"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("No task found with id: 99"));
+    }
+
+    @Test 
     void postTaskTest_201() throws Exception {
         String body = """
             {
@@ -51,5 +91,41 @@ public class TaskControllerTest {
 
     }
 
+    @Test
+    void putTaskTest_200() throws Exception {
+        String body = """
+            {
+                "title":"updated title",
+                "description":"updated description"
+            }
+            """;
 
+        String response = mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content("""
+                    {
+                        "title": "test title",
+                        "description": "test description"
+                    }
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.title").value("test title"))
+            .andExpect(jsonPath("$.description").value("test description"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long taskId = objectMapper.readTree(response).get("id").asLong();
+
+        mockMvc.perform(put("/api/tasks/" + taskId)
+                    .contentType("application/json")
+                    .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.title").value("updated title"))
+                .andExpect(jsonPath("$.description").value("updated description"));
+    }
+
+    
 }
