@@ -127,5 +127,111 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.description").value("updated description"));
     }
 
-    
+    @Test 
+    void putTaskTest_404() throws Exception{
+        String body = """
+            {
+                "title":"updated title",
+                "description":"updated description"
+            }
+            """;
+
+        mockMvc.perform(put("/api/tasks/99")
+                    .contentType("application/json")
+                    .content(body))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("Task not found with id: 99"));
+    }
+
+    @Test 
+    void markTaskAsCompleted_200() throws Exception{
+        String newBody = """
+            {
+                "title":"new title",
+                "description": "new description"
+            }
+            """;
+
+        String response = mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(newBody))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.title").value("new title"))
+            .andExpect(jsonPath("$.description").value("new description"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long taskId = objectMapper.readTree(response).get("id").asLong();
+
+        mockMvc.perform(put("/api/tasks/" + taskId + "/complete")
+                    .contentType("application/json")
+                    .content("""
+                        {
+                            "completed": true
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.completed").value(true));
+
+    }
+
+    @Test 
+    void markTaskAsCompleted_404() throws Exception{
+        String body = """
+            {
+                "title":"new title",
+                "description":"new description"
+            }
+            """;
+
+        mockMvc.perform(put("/api/tasks/99/complete")
+                    .contentType("application/json")
+                    .content(body))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("Task not found with id: 99"));
+    }
+
+    @Test 
+    void deleteTaskTest_200() throws Exception {
+        String newBody = """
+            {
+                "title":"new title",
+                "description": "new description"
+            }
+            """;
+        
+        String response = mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(newBody))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.title").value("new title"))
+            .andExpect(jsonPath("$.description").value("new description"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long taskId = objectMapper.readTree(response).get("id").asLong();
+        
+        mockMvc.perform(delete("/api/tasks/" + taskId))
+            .andExpect(status().isOk());
+    }
+
+    @Test 
+    void deleteTaskTest_404() throws Exception{
+        String body = """
+            {
+                "title":"new title",
+                "description":"new description"
+            }
+            """;
+
+        mockMvc.perform(delete("/api/tasks/99")
+                    .contentType("application/json")
+                    .content(body))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("Task not found with id: 99"));
+    }
 }
