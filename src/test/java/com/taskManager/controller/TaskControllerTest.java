@@ -34,9 +34,42 @@ public class TaskControllerTest {
 
     @Test 
     void getTasksTest_200() throws Exception{
+        String body1 = """
+            {
+                "title": "test title1",
+                "description": "test description1"
+            }
+            """;
+
+        String body2 = """
+            {
+                "title": "test title2",
+                "description": "test description2"
+            }
+        """;
+
+        mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body1));
+
+        mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body2));        
+
         mockMvc.perform(get("/api/tasks"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].title").value("test title1"))
+            .andExpect(jsonPath("$[1].title").value("test title2"));
+    }
+
+    @Test 
+    void getTasksTestEmpty_200() throws Exception{
+        mockMvc.perform(get("/api/tasks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test 
@@ -89,6 +122,55 @@ public class TaskControllerTest {
             .andExpect(jsonPath("$.title").value("test title"))
             .andExpect(jsonPath("$.description").value("test description"));
 
+    }
+
+    @Test 
+    void postEmptyTaskTest_400() throws Exception {
+        String body = """
+            {
+                "title":"",
+                "description": ""
+            }
+            """;
+        
+        mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error.title").value("Title is required"))
+            .andExpect(jsonPath("$.error.description").value("Description is required"));
+    }
+
+    @Test 
+    void postEmptyTitleTest_400() throws Exception {
+        String body = """
+            {
+                "title":"",
+                "description": "new Description"
+            }
+            """;
+        
+        mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error.title").value("Title is required"));
+    }
+
+    @Test 
+    void postEmptyDescriptionTest_400() throws Exception {
+        String body = """
+            {
+                "title":"new Title",
+                "description": ""
+            }
+            """;
+        
+        mockMvc.perform(post("/api/tasks")
+                .contentType("application/json")
+                .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error.description").value("Description is required"));
     }
 
     @Test
@@ -165,13 +247,7 @@ public class TaskControllerTest {
 
         Long taskId = objectMapper.readTree(response).get("id").asLong();
 
-        mockMvc.perform(put("/api/tasks/" + taskId + "/complete")
-                    .contentType("application/json")
-                    .content("""
-                        {
-                            "completed": true
-                        }
-                        """))
+        mockMvc.perform(put("/api/tasks/" + taskId + "/complete"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.completed").value(true));
 
@@ -217,6 +293,9 @@ public class TaskControllerTest {
         
         mockMvc.perform(delete("/api/tasks/" + taskId))
             .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/tasks/" + taskId))
+            .andExpect(status().isNotFound());
     }
 
     @Test 
