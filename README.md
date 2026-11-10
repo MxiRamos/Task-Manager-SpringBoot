@@ -1,5 +1,4 @@
-﻿# Task-Manager-SpringBoot
- # Task Manager - Spring Boot
+﻿ # Task Manager - Spring Boot
 
 A RESTful API for managing tasks, developed with Java and Spring Boot.
 
