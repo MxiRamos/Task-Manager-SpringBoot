@@ -54,10 +54,10 @@ public class TaskServiceImplTest {
 
         assertThat(taskResponses).hasSize(2);
 
-        assertThat(taskResponses.get(0).id()).isEqualTo(0);
+        assertThat(taskResponses.get(0).id()).isEqualTo(0L);
         assertThat(taskResponses.get(0).title()).isEqualTo("Title task Test1");
 
-        assertThat(taskResponses.get(1).id()).isEqualTo(1);
+        assertThat(taskResponses.get(1).id()).isEqualTo(1L);
         assertThat(taskResponses.get(1).title()).isEqualTo("Title task Test2");
 
         verify(taskRepository).findAll();
@@ -186,20 +186,13 @@ public class TaskServiceImplTest {
                 .completed(false)
                 .build();
         when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
-
-        Task updatedTask = Task.builder()
-                .id(1L)
-                .title("Updated Task Test completed")
-                .description("Updated description Test completed")
-                .completed(true)
-                .build();
-        when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TaskResponse taskResponse = taskService.markTaskAsCompleted(1L);
 
         assertThat(taskResponse.id()).isEqualTo(1L);
-        assertThat(taskResponse.title()).isEqualTo("Updated Task Test completed");
-        assertThat(taskResponse.description()).isEqualTo("Updated description Test completed");
+        assertThat(taskResponse.title()).isEqualTo("Task to complete");
+        assertThat(taskResponse.description()).isEqualTo("Description task to complete");
         assertThat(taskResponse.completed()).isTrue();
         verify(taskRepository).findById(1L);
         verify(taskRepository).save(any(Task.class));

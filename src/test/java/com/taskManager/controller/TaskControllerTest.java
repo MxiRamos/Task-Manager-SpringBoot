@@ -363,7 +363,7 @@ public class TaskControllerTest {
     }
 
     @Test 
-    void deleteTaskTest_200() throws Exception {
+    void deleteTaskTest_204() throws Exception {
         String newBody = """
             {
                 "title":"new title",
@@ -385,7 +385,7 @@ public class TaskControllerTest {
         Long taskId = objectMapper.readTree(response).get("id").asLong();
         
         mockMvc.perform(delete("/api/tasks/" + taskId))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/tasks/" + taskId))
             .andExpect(status().isNotFound());
